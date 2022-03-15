@@ -1,0 +1,45 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import datetime
+
+
+def get_udemy_info():
+    url='https://scraping-for-beginner.herokuapp.com/udemy'
+
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text,'html.parser')
+
+    name = soup.select('.card-title')[0].string
+
+    n_subscribers = soup.select('.subscribers')[0].string
+    n_subscribers = int(n_subscribers.split('：')[1])
+
+    n_reviews = soup.select('.reviews')[0].string
+    n_reviews=int(n_reviews.split('：')[1])
+
+    results = {
+        'name': name,
+        'subscribers': n_subscribers,
+        'reviews': n_reviews
+    }
+
+    return results
+
+def write_data():
+    df = pd.read_csv('assets/data.csv')
+
+    _results = get_udemy_info()
+
+
+    date=datetime.datetime.today().strftime('%Y/%m/%d').replace('/O','/')
+    subscribers = _results['subscribers']
+    reviews = _results['reviews']
+    results=pd.DataFrame([[date,subscribers,reviews]],columns=['date','subscribers','reviews'])
+
+    df = pd.concat([df,results])
+    df.to_csv('assets/data.csv',index=False)
+
+
+if __name__=="__main__":
+  write_data()
