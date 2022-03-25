@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
-import pandas as pd
+
+from assets.database import db_session
+from assets.models import Data
 import datetime
 
 
@@ -27,19 +29,18 @@ def get_udemy_info():
     return results
 
 def write_data():
-    df = pd.read_csv('assets/data.csv')
 
     _results = get_udemy_info()
 
 
-    date=datetime.datetime.today().strftime('%Y/%m/%d').replace('/O','/')
+    date=datetime.date.today()
     subscribers = _results['subscribers']
     reviews = _results['reviews']
-    results=pd.DataFrame([[date,subscribers,reviews]],columns=['date','subscribers','reviews'])
 
-    df = pd.concat([df,results])
-    df.to_csv('assets/data.csv',index=False)
+    row = Data(date=date, subscribers=subscribers, reviews=reviews)
 
+    db_session.add(row)
+    db_session.commit()
 
 if __name__=="__main__":
   write_data()
